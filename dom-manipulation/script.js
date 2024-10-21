@@ -31,12 +31,14 @@ function createAddQuoteForm() {
         populateCategories();
         form.reset();
         showRandomQuote(filterQuotes());
+        syncWithServer();
     });
 }
 
 function populateCategories() {
     const categoryFilter = document.getElementById('categoryFilter');
     const categories = [...new Set(quotes.map(quote => quote.category))];
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
     categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
@@ -74,8 +76,36 @@ function importFromJsonFile(event) {
         populateCategories();
         alert('Quotes imported successfully!');
         showRandomQuote(filterQuotes());
+        syncWithServer();
     };
     fileReader.readAsText(event.target.files[0]);
+}
+
+async function fetchQuotesFromServer() {
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+    const serverQuotes = await response.json();
+    return serverQuotes.map(quote => ({
+        text: quote.title,
+        category: quote.body.slice(0, 10)
+    }));
+}
+
+async function syncWithServer() {
+    const serverQuotes = await fetchQuotesFromServer();
+    const mergedQuotes = mergeQuotes(serverQuotes);
+    localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
+    alert('Quotes have been synchronized with the server.');
+    showRandomQuote(filterQuotes());
+}
+
+function mergeQuotes(serverQuotes) {
+    const existingQuotesMap = new Map(quotes.map(quote => [quote.text, quote]));
+    serverQuotes.forEach(serverQuote => {
+        if (!existingQuotesMap.has(serverQuote.text)) {
+            existingQuotesMap.set(serverQuote.text, serverQuote);
+        }
+    });
+    return Array.from(existingQuotesMap.values());
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -84,6 +114,5 @@ document.addEventListener('DOMContentLoaded', () => {
     filterQuotes();
     createAddQuoteForm();
     populateCategories();
-    const exportButton = document.getElementById('exportQuotes');
-    exportButton.addEventListener('click', exportQuotes);
+    setInterval(syncWithServer, 10000);
 });
