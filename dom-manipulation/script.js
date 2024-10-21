@@ -21,13 +21,14 @@ function createAddQuoteForm() {
         <button type="submit">Add Quote</button>
     `;
     formContainer.appendChild(form);
-    form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', async function(event) {
         event.preventDefault();
         const quoteText = document.getElementById('quote-text').value;
         const quoteCategory = document.getElementById('quote-category').value;
         const newQuote = { text: quoteText, category: quoteCategory };
         quotes.push(newQuote);
         localStorage.setItem('quotes', JSON.stringify(quotes));
+        await postQuoteToServer(newQuote);
         populateCategories();
         form.reset();
         showRandomQuote(filterQuotes());
@@ -88,6 +89,16 @@ async function fetchQuotesFromServer() {
         text: quote.title,
         category: quote.body.slice(0, 10)
     }));
+}
+
+async function postQuoteToServer(quote) {
+    await fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(quote)
+    });
 }
 
 async function syncWithServer() {
