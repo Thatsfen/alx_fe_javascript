@@ -111,6 +111,7 @@ async function syncQuotes() {
     quotes.length = 0;
     quotes.push(...mergedQuotes);
     showRandomQuote(filterQuotes());
+    alert('Quotes synced with server!'); // Notification for successful sync
 }
 
 function mergeQuotes(serverQuotes) {
@@ -131,3 +132,4 @@ document.addEventListener('DOMContentLoaded', () => {
     populateCategories();
     setInterval(syncQuotes, 10000);
 });
+
