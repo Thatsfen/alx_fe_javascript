@@ -32,7 +32,7 @@ function createAddQuoteForm() {
         populateCategories();
         form.reset();
         showRandomQuote(filterQuotes());
-        syncWithServer();
+        syncQuotes();
     });
 }
 
@@ -77,7 +77,7 @@ function importFromJsonFile(event) {
         populateCategories();
         alert('Quotes imported successfully!');
         showRandomQuote(filterQuotes());
-        syncWithServer();
+        syncQuotes();
     };
     fileReader.readAsText(event.target.files[0]);
 }
@@ -101,11 +101,15 @@ async function postQuoteToServer(quote) {
     });
 }
 
-async function syncWithServer() {
+async function syncQuotes() {
     const serverQuotes = await fetchQuotesFromServer();
     const mergedQuotes = mergeQuotes(serverQuotes);
+    if (mergedQuotes.length > quotes.length) {
+        alert('New quotes have been added from the server.');
+    }
     localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
-    alert('Quotes have been synchronized with the server.');
+    quotes.length = 0;
+    quotes.push(...mergedQuotes);
     showRandomQuote(filterQuotes());
 }
 
@@ -125,5 +129,5 @@ document.addEventListener('DOMContentLoaded', () => {
     filterQuotes();
     createAddQuoteForm();
     populateCategories();
-    setInterval(syncWithServer, 10000);
+    setInterval(syncQuotes, 10000);
 });
